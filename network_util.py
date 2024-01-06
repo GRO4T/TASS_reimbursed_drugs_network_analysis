@@ -30,3 +30,17 @@ def sum_node_weights(graph, nodes, columns) -> pd.DataFrame:
         for n in nodes
     ]
     return pd.DataFrame(weight_sum, columns=columns)
+
+
+def get_entity_share(graph, nodes) -> dict:
+    result = {}
+    for substance_node in nodes:
+        total_refund = 0.0
+        data = [
+            (entity_node, graph.edges[substance_node, entity_node]["weight"])
+            for entity_node in graph.neighbors[substance_node]
+        ]
+        result[substance_node] = (data, total_refund)
+
+
+# {substancja: ([(podmiot, refundacja)], suma)}
