@@ -1,4 +1,5 @@
 import networkx as nx
+import pandas as pd
 
 
 def create_bipartite_graph(set_0, set_1, weights=None) -> nx.Graph:
@@ -21,3 +22,11 @@ def create_bipartite_layout(set_0, set_1) -> dict:
     layout.update((n, (2, i)) for i, n in enumerate(set_1))
 
     return layout
+
+
+def sum_node_weights(graph, nodes, columns) -> pd.DataFrame:
+    weight_sum = [
+        (n, sum(graph.edges[n, neighbor]["weight"] for neighbor in graph.neighbors(n)))
+        for n in nodes
+    ]
+    return pd.DataFrame(weight_sum, columns=columns)
