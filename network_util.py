@@ -1,5 +1,6 @@
 import networkx as nx
 import pandas as pd
+import math
 
 
 def create_bipartite_graph(set_0, set_1, weights=None) -> nx.Graph:
@@ -36,11 +37,39 @@ def get_entity_share(graph, nodes) -> dict:
     result = {}
     for substance_node in nodes:
         total_refund = 0.0
-        data = [
-            (entity_node, graph.edges[substance_node, entity_node]["weight"])
-            for entity_node in graph.neighbors[substance_node]
-        ]
-        result[substance_node] = (data, total_refund)
+        refund_per_entity = []
+        for entity_node in graph.neighbors(substance_node):
+            refund = graph.edges[substance_node, entity_node]["weight"]
+            refund_per_entity.append([entity_node, refund])
+            total_refund += refund
+
+        for i in range(len(refund_per_entity)):
+            refund_per_entity[i][1] = round(refund_per_entity[i][1] / total_refund, 3)
+
+        result[substance_node] = (refund_per_entity, total_refund)
+
+    return result
+
+    # {Substancja: ([(Producent, udzial), (producent2, udzial)], suma)}
 
 
-# {substancja: ([(podmiot, refundacja)], suma)}
+def get_favored_producer(data):
+    producer_wins = {}
+    monopolists = 0
+    for substance in data.values():
+        if len(substance[0]) == 1:
+            monopolists += 1
+        else:
+            producer_with_biggest_share = max(substance[0], key=lambda x: x[1])
+            best_producer_per_substance = producer_with_biggest_share[0]
+            producer_wins[best_producer_per_substance] = (
+                producer_wins.get(best_producer_per_substance, 0) + 1
+            )
+
+    return (producer_wins, monopolists)
+
+
+def get_substances(graph, nodes) -> dict:
+    result = {entity_node: list(graph.neighbors(entity_node)) for entity_node in nodes}
+
+    return result
